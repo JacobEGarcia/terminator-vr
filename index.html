@@ -1441,7 +1441,7 @@ function doShoot(){
   const origin=new THREE.Vector3().setFromMatrixPosition(muzzle.matrixWorld);
   const dir=new THREE.Vector3(0,0,-1).applyQuaternion(
     weaponGroup.getWorldQuaternion(new THREE.Quaternion()));
-  spawnBolt(origin,dir,bolts,boltMat,90,40);
+  spawnBolt(origin,dir,bolts,boltMat,70,40);
   AudioSys.plasma();
   // muzzle flash + recoil
   weaponGroup.userData.flash.material.opacity=1;
@@ -1464,27 +1464,31 @@ function doGrenade(){
 }
 
 /* update player bolts */
-const _headPos=new THREE.Vector3(),_torPos=new THREE.Vector3();
+const _headPos=new THREE.Vector3(),_torPos=new THREE.Vector3(),_mid=new THREE.Vector3();
 function updateBolts(dt){
   for(const b of bolts){
     if(!b.visible)continue;
     b.userData.life-=dt;
+    // swept test: sample end + midpoint of this frame's travel
+    _mid.copy(b.position).addScaledVector(b.userData.vel,dt*.5);
     b.position.addScaledVector(b.userData.vel,dt);
     let hit=false;
     for(const e of enemies){
       if(e.state==='dying')continue;
       e.parts.headG.getWorldPosition(_headPos);
       e.parts.torso.getWorldPosition(_torPos);
-      const dh=b.position.distanceToSquared(_headPos);
-      if(dh<.045){e.damage(b.userData.dmg*2.5,b.position.clone(),true);hit=true;break;}
-      const dt2=b.position.distanceToSquared(_torPos);
-      if(dt2<.42){e.damage(b.userData.dmg,b.position.clone(),false);hit=true;break;}
+      if(b.position.distanceToSquared(_headPos)<.06||_mid.distanceToSquared(_headPos)<.06){
+        e.damage(b.userData.dmg*2.5,b.position.clone(),true);hit=true;break;}
+      if(b.position.distanceToSquared(_torPos)<.5||_mid.distanceToSquared(_torPos)<.5){
+        e.damage(b.userData.dmg,b.position.clone(),false);hit=true;break;}
     }
     if(!hit)for(const h of hks){
       if(h.state==='dying')continue;
       h.sensor.getWorldPosition(_v1);
-      if(b.position.distanceToSquared(_v1)<.6){h.damage(b.userData.dmg*2,b.position.clone());hit=true;break;}
-      if(b.position.distanceToSquared(h.g.position)<9){h.damage(b.userData.dmg,b.position.clone());hit=true;break;}
+      if(b.position.distanceToSquared(_v1)<.7||_mid.distanceToSquared(_v1)<.7){
+        h.damage(b.userData.dmg*2,b.position.clone());hit=true;break;}
+      if(b.position.distanceToSquared(h.g.position)<9||_mid.distanceToSquared(h.g.position)<9){
+        h.damage(b.userData.dmg,b.position.clone());hit=true;break;}
     }
     if(hit||b.userData.life<=0||b.position.y<0){
       if(!hit&&b.position.y<0)burstSparks(b.position,6,.6);
