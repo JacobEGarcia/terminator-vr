@@ -702,9 +702,14 @@ function buildEndo(){
   const glowTex=flameTex;
   const eyeGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0xff2005,
     transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false}));
-  eyeGlow.scale.setScalar(.2);
+  eyeGlow.scale.setScalar(.22);
   eyeGlow.position.set(0,.075,.1);
   headG.add(eyeGlow);
+  const chestGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0xff4408,
+    transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false}));
+  chestGlow.scale.setScalar(.5);
+  chestGlow.position.set(0,.05,.05);
+  torso.add(chestGlow);
 
   /* arms */
   const mkArm=(side)=>{
@@ -1393,8 +1398,8 @@ const Game={
       if(this.spawnTimer<=0){
         this.spawnTimer=.7+Math.random()*1.2;
         this.spawnQueue--;
-        const a=Math.random()*Math.PI*2;
-        const d=34+Math.random()*20;
+        const a=-Math.PI/2+(Math.random()-.5)*2.4;
+        const d=32+Math.random()*18;
         const speedMul=1+this.wave*.06;
         const hpMul=1+this.wave*.05;
         enemies.push(new Endo(new THREE.Vector3(Math.cos(a)*d,0,Math.sin(a)*d-10),speedMul,hpMul));
